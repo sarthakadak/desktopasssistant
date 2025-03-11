@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini-Based Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f9;
+        }
+
+        #chatbot-container {
+            width: 400px;
+            height: 600px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #chat-display {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .message {
+            margin-bottom: 15px;
+        }
+
+        .user-message {
+            text-align: right;
+        }
+
+        .bot-message {
+            text-align: left;
+        }
+
+        .message span {
+            display: inline-block;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .user-message span {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .bot-message span {
+            background-color: #f1f1f1;
+            color: black;
+        }
+
+        #input-container {
+            display: flex;
+            padding: 10px;
+            border-top: 2px solid #ddd;
+        }
+
+        #user-input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        #send-btn {
+            padding: 10px 15px;
+            margin-left: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #send-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div id="chatbot-container">
+        <div id="chat-display"></div>
+        <div id="input-container">
+            <input type="text" id="user-input" placeholder="Type your message...">
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const chatDisplay = document.getElementById("chat-display");
+        const userInput = document.getElementById("user-input");
+        const sendBtn = document.getElementById("send-btn");
+
+        async function fetchGeminiResponse(userMessage) {
+            const endpoint = "http://127.0.0.1:5000s"; // Hypothetical Gemini endpoint
+
+            const payload = {
+                model: "gemini",
+                messages: [
+                    { role: "system", content: "You are a helpful AI chatbot." },
+                    { role: "user", content: userMessage },
+                ],
+            };
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "AIzaSyDlshukMlxUZSbcJa3RVdOZpXaXU5OgX1", // Placeholder API key
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data.choices[0].message.content || "Sorry, I couldn't fetch a response.";
+            } catch (error) {
+                console.error("Error fetching Gemini response:", error);
+                return "Sorry, I'm having trouble connecting to the AI right now.";
+            }
+        }
+
+        function addMessage(content, sender) {
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("message", sender === "user" ? "user-message" : "bot-message");
+            const messageContent = document.createElement("span");
+            messageContent.textContent = content;
+            messageDiv.appendChild(messageContent);
+            chatDisplay.appendChild(messageDiv);
+            chatDisplay.scrollTop = chatDisplay.scrollHeight;
+        }
+
+        async function handleSendMessage() {
+            const message = userInput.value.trim();
+            if (message) {
+                addMessage(message, "user");
+                userInput.value = "";
+                const response = await fetchGeminiResponse(message);
+                addMessage(response, "bot");
+            }
+        }
+
+        sendBtn.addEventListener("click", handleSendMessage);
+        userInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                handleSendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
